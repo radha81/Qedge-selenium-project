@@ -1,0 +1,18 @@
+Simple Queries:
+1.list only firstname,job id and salary from employee table
+SELECT FIRST_NAME,JOB_ID,SALARY from employee;
+2.List all the employee details
+SQL > Select * from employee;
+3.List all the department details
+SQL > Select * from department;
+4.List all job details
+SQL > Select * from job;
+5.List all the locations
+SQL > Select * from loc;
+6.List out first name,last name,salary, commission for all employees
+SQL >SELECT FIRST_NAME,LAST_NAME,SALARY,COMM from employee;
+7.List out employee_id,lastname,department id for all  employees and rename employee id as “ID  of the employee”, last name as “Name of the employee”, department id as  “department  ID”
+SQL > Select employee_id "id of the employee", last_name "name", DEPARTMENT_ID  AS "department id" from employee;
+8.List out the employees anuual salary with their names only.
+SQL > Select last_name, salary*12 "annual salary" from employee;
+

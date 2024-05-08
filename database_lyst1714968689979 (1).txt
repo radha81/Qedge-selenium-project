@@ -1,0 +1,26 @@
+CREATE TABLE Persons (PersonID int,LastName varchar(255),FirstName varchar(255),Address varchar(255),City varchar(255));
+
+http://localhost/phpmyadmin/
+//location table
+
+CREATE TABLE LOCATION(Location_ID int,Regional_Group varchar(50))
+//department table
+CREATE TABLE DEPARTMENT(Department_ID int,Name varchar(80),Location_ID int);
+//job table
+CREATE TABLE JOB(Job_ID int,Function varchar(30));
+
+/employee table
+CREATE TABLE EMPLOYEE(EMPLOYEE_ID int,LAST_NAME varchar(20),FIRST_NAME varchar(30),MIDDLE_NAME varchar(1),JOB_ID int,MANAGER_ID int,HIREDATE varchar(20),SALARY int,COMM varchar(5),DEPARTMENT_ID int)
+
+
+UPDATE table_name SET column_name = new_value WHERE column_name = old_value
+
+Delete a particular column:
+
+DELETE FROM table_name WHERE column_name = some_value
+
+Delete All Rows:
+
+DELETE FROM table_name or DELETE * FROM table_name
+
+

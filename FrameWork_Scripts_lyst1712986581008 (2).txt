@@ -1,0 +1,268 @@
+Preparing Property File
+==============================================
+Browser = chrome
+Url = http://webapp.qedgetech.com/
+
+
+=================================================
+preparing Function libaray class
+=========================================================
+package commonFunctions;
+
+import java.io.FileInputStream;
+import java.time.Duration;
+import java.util.Properties;
+
+import org.openqa.selenium.By;
+import org.openqa.selenium.Keys;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.chrome.ChromeDriver;
+import org.openqa.selenium.firefox.FirefoxDriver;
+import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.WebDriverWait;
+import org.testng.Assert;
+import org.testng.Reporter;
+
+public class FunctionLibrary {
+	public static Properties conpro;
+	public static WebDriver driver;
+	//method for launching browser
+	public static WebDriver startBrowser()throws Throwable
+	{
+		conpro = new Properties();
+		//load file
+		conpro.load(new FileInputStream("./PropertyFiles/Environment.properties"));
+		if(conpro.getProperty("Browser").equalsIgnoreCase("chrome"))
+		{
+			driver = new ChromeDriver();
+			driver.manage().window().maximize();
+		}
+		else if(conpro.getProperty("Browser").equalsIgnoreCase("firefox"))
+		{
+			driver= new FirefoxDriver();
+		}
+		else
+		{
+			Reporter.log("Browser Key value is Not matching",true);
+		}
+		return driver;
+	}
+	//method for launching url
+	public static void openUrl()
+	{
+		driver.get(conpro.getProperty("Url"));
+	}
+	//method for webelement to wait
+	public static void waitForElement(String Locatorname,String LocatorValue,String TestData)
+	{
+		WebDriverWait mywait = new WebDriverWait(driver, Duration.ofSeconds(Integer.parseInt(TestData)));
+		if(Locatorname.equalsIgnoreCase("xpath"))
+		{
+			mywait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath(LocatorValue)));
+		}
+		if(Locatorname.equalsIgnoreCase("id"))
+		{
+			mywait.until(ExpectedConditions.visibilityOfElementLocated(By.id(LocatorValue)));
+		}
+		if(Locatorname.equalsIgnoreCase("name"))
+		{
+			mywait.until(ExpectedConditions.visibilityOfElementLocated(By.name(LocatorValue)));
+		}
+	}
+	//method for type action
+	public static void typeAction(String LocatorName,String LocatorValue,String TestData)
+	{
+		if(LocatorName.equalsIgnoreCase("xpath"))
+		{
+			driver.findElement(By.xpath(LocatorValue)).clear();
+			driver.findElement(By.xpath(LocatorValue)).sendKeys(TestData);
+		}
+		if(LocatorName.equalsIgnoreCase("name"))
+		{
+			driver.findElement(By.name(LocatorValue)).clear();
+			driver.findElement(By.name(LocatorValue)).sendKeys(TestData);
+		}
+		if(LocatorName.equalsIgnoreCase("id"))
+		{
+			driver.findElement(By.id(LocatorValue)).clear();
+			driver.findElement(By.id(LocatorValue)).sendKeys(TestData);
+		}
+	}
+	//method for click action
+	public static void clickAction(String LocatorName,String LocatorValue)
+	{
+		if(LocatorName.equalsIgnoreCase("xpath"))
+		{
+			driver.findElement(By.xpath(LocatorValue)).click();
+		}
+		if(LocatorName.equalsIgnoreCase("id"))
+		{
+			driver.findElement(By.id(LocatorValue)).sendKeys(Keys.ENTER);
+		}
+		if(LocatorName.equalsIgnoreCase("name"))
+		{
+			driver.findElement(By.name(LocatorValue)).click();
+		}
+	}
+	//method for page title validation
+	public static void validateTitle(String Expected_Title)
+	{
+		String Actual_Title = driver.getTitle();
+		try {
+			Assert.assertEquals(Actual_Title, Expected_Title, "Title is Not Matching");
+		}catch(AssertionError a)
+		{
+			System.out.println(a.getMessage());
+		}
+	}
+	//method for closing browser
+	public static void closeBrowser()
+	{
+		driver.quit();
+	}
+//method for date generation
+	public static String generateDate()
+	{
+		Date date = new Date();
+		DateFormat  df = new SimpleDateFormat("YYYY_MM_dd hh_mm_ss");
+		return df.format(date);
+	}
+
+
+}
+
+======================================================
+Preparing Driver Script
+===========================================================
+package driverFactory;
+
+import org.openqa.selenium.WebDriver;
+
+import com.relevantcodes.extentreports.ExtentReports;
+import com.relevantcodes.extentreports.ExtentTest;
+import com.relevantcodes.extentreports.LogStatus;
+
+import commonFunctions.FunctionLibrary;
+import utilities.ExcelFileUtil;
+
+public class DriverScript {
+WebDriver driver;
+String inputpath ="./FileInput/DataEngine.xlsx";
+String outputpath ="./FileOutput/HybridResults.xlsx";
+ExtentReports report;
+ExtentTest logger;
+String TestCases ="MasterTestCases";
+public void startTest() throws Throwable
+{
+	String Module_Status;
+	//create object for Exelfileutil class
+	ExcelFileUtil xl =new ExcelFileUtil(inputpath);
+	//iterate all test cases in TestCases
+	for(int i=1;i<=xl.rowCount(TestCases);i++)
+	{
+		if(xl.getCellData(TestCases, i, 2).equalsIgnoreCase("Y"))
+		{
+			//read corresponding sheet or test cases
+			String TCModule =xl.getCellData(TestCases, i, 1);
+			//define path of html 
+			report= new ExtentReports("./target/ExtentReports/"+TCModule+FunctionLibrary.generateDate()+".html");
+			logger= report.startTest(TCModule);
+			logger.assignAuthor("Ranga");
+			
+			//iterate all rows in TCModule sheet
+			for(int j=1;j<=xl.rowCount(TCModule);j++)
+			{
+				//read all cell from TCmodule sheet
+				String Description = xl.getCellData(TCModule, j, 0);
+				String Object_Type = xl.getCellData(TCModule, j, 1);
+				String LName =xl.getCellData(TCModule, j, 2);
+				String Lvalue = xl.getCellData(TCModule, j, 3);
+				String Test_Data = xl.getCellData(TCModule, j, 4);
+				try {
+					if(Object_Type.equalsIgnoreCase("startBrowser"))
+					{
+					driver =	FunctionLibrary.startBrowser();
+					logger.log(LogStatus.INFO, Description);
+					}
+					if(Object_Type.equalsIgnoreCase("openUrl"))
+					{
+						FunctionLibrary.openUrl();
+						logger.log(LogStatus.INFO, Description);
+					}
+					if(Object_Type.equalsIgnoreCase("waitForElement"))
+					{
+						FunctionLibrary.waitForElement(LName, Lvalue, Test_Data);
+						logger.log(LogStatus.INFO, Description);
+					}
+					if(Object_Type.equalsIgnoreCase("typeAction"))
+					{
+						FunctionLibrary.typeAction(LName, Lvalue, Test_Data);
+						logger.log(LogStatus.INFO, Description);
+					}
+					if(Object_Type.equalsIgnoreCase("clickAction"))
+					{
+						FunctionLibrary.clickAction(LName, Lvalue);
+						logger.log(LogStatus.INFO, Description);
+					}
+					if(Object_Type.equalsIgnoreCase("validateTitle"))
+					{
+						FunctionLibrary.validateTitle(Test_Data);
+						logger.log(LogStatus.INFO, Description);
+					}
+					if(Object_Type.equalsIgnoreCase("closeBrowser"))
+					{
+						FunctionLibrary.closeBrowser();
+						logger.log(LogStatus.INFO, Description);
+					}
+					//write as pass into TCModule sheet in status cell
+					xl.setCellData(TCModule, j, 5, "Pass", outputpath);
+					logger.log(LogStatus.PASS, Description);
+					Module_Status="True";
+				}catch(Exception e)
+				{
+					System.out.println(e.getMessage());
+					//write as Fail into TCModule sheet in status cell
+					xl.setCellData(TCModule, j, 5, "Fail", outputpath);
+					logger.log(LogStatus.FAIL, Description);
+					Module_Status ="False";
+				}
+				if(Module_Status.equalsIgnoreCase("True"))
+				{
+					//write as pass into TestCases Sheet
+					xl.setCellData(TestCases, i, 3, "Pass", outputpath);
+				}
+				else
+				{
+					//write as Fail into TestCases Sheet
+					xl.setCellData(TestCases, i, 3, "Fail", outputpath);
+				}
+				report.endTest(logger);
+				report.flush();
+			}
+		}
+		else
+		{
+			//write as blocked for test cases flag to N in TestCases Sheet
+			xl.setCellData(TestCases, i, 3, "Blocked", outputpath);
+		}
+	}
+	
+}
+}
+
+=================================================
+Preparing AppTest Class
+==========================================================
+
+package driverFactory;
+
+import org.testng.annotations.Test;
+
+public class AppTest {
+@Test
+public void kickStart() throws Throwable
+{
+	DriverScript ds = new DriverScript();
+	ds.startTest();
+}
+}
